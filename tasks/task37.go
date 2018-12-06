@@ -37,7 +37,9 @@ func SolveSudoku(board [][]byte) {
 	}
 
 	// 循环检测
-	for len(notSolvePosPossibleMap) != 0 {
+	prev := 0
+	for len(notSolvePosPossibleMap) != 0 && prev != len(notSolvePosPossibleMap) {
+		prev = len(notSolvePosPossibleMap)
 		for pos := range notSolvePosPossibleMap {
 			excludeByRow(pos, notSolvePosPossibleMap, board)
 			excludeByCol(pos, notSolvePosPossibleMap, board)
@@ -67,8 +69,8 @@ func generateMapByByteRange(start, end byte) map[byte]struct{} {
 func excludeByRow(pos position, notSolvePosPossible map[position]map[byte]struct{}, board [][]byte) {
 	posPossible := notSolvePosPossible[pos]
 
-	notSolvePos := make([]position, 0, len(board[pos.Row]))
-	for j := 0; j < len(board[pos.Row]); j++ {
+	notSolvePos := make([]position, 0, 9)
+	for j := 0; j < 9; j++ {
 		if pos.Col == j {
 			continue
 		}
@@ -83,11 +85,13 @@ func excludeByRow(pos position, notSolvePosPossible map[position]map[byte]struct
 		}
 	}
 
-	excludeByPossible(posPossible, notSolvePos, notSolvePosPossible)
+	excludeByPossible(pos, notSolvePos, notSolvePosPossible)
+	excludeByNotPossible(pos, notSolvePos, notSolvePosPossible)
 }
 
 // 根据列排除可能性
 func excludeByCol(pos position, notSolvePosPossible map[position]map[byte]struct{}, board [][]byte) {
+	
 	posPossible := notSolvePosPossible[pos]
 
 	notSolvePos := make([]position, 0, 9)
@@ -106,7 +110,9 @@ func excludeByCol(pos position, notSolvePosPossible map[position]map[byte]struct
 		}
 	}
 
-	excludeByPossible(posPossible, notSolvePos, notSolvePosPossible)
+	excludeByPossible(pos, notSolvePos, notSolvePosPossible)
+	excludeByNotPossible(pos, notSolvePos, notSolvePosPossible)
+
 }
 
 // 根据小九宫排除
@@ -136,14 +142,16 @@ func excludeByTinySudoku(pos position, notSolvePosPossible map[position]map[byte
 	}
 
 	// 可能性排除法
-	excludeByPossible(posPossible, notSolvePos, notSolvePosPossible)
+	excludeByPossible(pos, notSolvePos, notSolvePosPossible)
+	excludeByNotPossible(pos, notSolvePos, notSolvePosPossible)
 }
 
-func excludeByPossible(posPossibleMap map[byte]struct{},
-	notSolvePos []position,
+func excludeByPossible(pos position, notSolvePos []position,
 	notSolvePosPossibleMap map[position]map[byte]struct{}) {
 
-	// 计算每个可能出现率
+	posPossibleMap := notSolvePosPossibleMap[pos]
+
+	// 计算每个可能的出现率
 	count := make([]int, 0, len(notSolvePos))
 	for i := 0; i < len(notSolvePos)-1; i++ {
 		k := 0
@@ -165,6 +173,29 @@ func excludeByPossible(posPossibleMap map[byte]struct{},
 			}
 		}
 	}
+}
+
+func excludeByNotPossible(pos position, notSolvePos []position,
+	notSolvePosPossibleMap map[position]map[byte]struct{}) {
+
+	posPossibleMap := notSolvePosPossibleMap[pos]
+
+	for posPossible := range posPossibleMap {
+		b := true
+		for _, notPos := range notSolvePos {
+			if _, ok := notSolvePosPossibleMap[notPos][posPossible]; ok {
+				b = false
+			}
+		}
+
+		if b {
+			notSolvePosPossibleMap[pos] = map[byte]struct{}{
+				posPossible: struct{}{},
+			}
+			return
+		}
+	}
+
 }
 
 func deletePositionArray(arr []position, i int) []position {
