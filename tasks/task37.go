@@ -54,6 +54,8 @@ func SolveSudoku(board [][]byte) {
 			}
 		}
 	}
+
+	PrintPossibleMap(notSolvePosPossibleMap)
 }
 
 // 生成start到end的byte数组, [start, end]
@@ -66,8 +68,8 @@ func generateMapByByteRange(start, end byte) map[byte]struct{} {
 }
 
 // 根据行排除可能性
-func excludeByRow(pos position, notSolvePosPossible map[position]map[byte]struct{}, board [][]byte) {
-	posPossible := notSolvePosPossible[pos]
+func excludeByRow(pos position, notSolvePosPossibleMap map[position]map[byte]struct{}, board [][]byte) {
+	posPossible := notSolvePosPossibleMap[pos]
 
 	notSolvePos := make([]position, 0, 9)
 	for j := 0; j < 9; j++ {
@@ -85,13 +87,13 @@ func excludeByRow(pos position, notSolvePosPossible map[position]map[byte]struct
 		}
 	}
 
-	excludeByPossible(pos, notSolvePos, notSolvePosPossible)
-	excludeByNotPossible(pos, notSolvePos, notSolvePosPossible)
+	excludeByPossible(pos, notSolvePos, notSolvePosPossibleMap)
+	excludeByNotPossible(pos, notSolvePos, notSolvePosPossibleMap)
 }
 
 // 根据列排除可能性
 func excludeByCol(pos position, notSolvePosPossible map[position]map[byte]struct{}, board [][]byte) {
-	
+
 	posPossible := notSolvePosPossible[pos]
 
 	notSolvePos := make([]position, 0, 9)
@@ -151,10 +153,18 @@ func excludeByPossible(pos position, notSolvePos []position,
 
 	posPossibleMap := notSolvePosPossibleMap[pos]
 
+	if len(posPossibleMap) == 0 {
+		panic("this is zero error")
+	}
+
+	if len(posPossibleMap) == 1 {
+		return
+	}
+
 	// 计算每个可能的出现率
 	count := make([]int, 0, len(notSolvePos))
 	for i := 0; i < len(notSolvePos)-1; i++ {
-		k := 0
+		k := 1
 		for j := i + 1; j < len(notSolvePos); j++ {
 			if reflect.DeepEqual(notSolvePosPossibleMap[notSolvePos[i]], notSolvePosPossibleMap[notSolvePos[j]]) {
 				k++
@@ -172,7 +182,13 @@ func excludeByPossible(pos position, notSolvePos []position,
 				delete(posPossibleMap, key)
 			}
 		}
+		if len(notSolvePosPossibleMap[notSolvePos[i]]) != 0 && len(notSolvePosPossibleMap[notSolvePos[i]]) < count[i] {
+			fmt.Println(notSolvePosPossibleMap[notSolvePos[i]])
+			fmt.Println(count[i])
+			panic("have possible error")
+		}
 	}
+
 }
 
 func excludeByNotPossible(pos position, notSolvePos []position,
@@ -180,17 +196,30 @@ func excludeByNotPossible(pos position, notSolvePos []position,
 
 	posPossibleMap := notSolvePosPossibleMap[pos]
 
+	if len(posPossibleMap) == 0 {
+		panic("this is zero error")
+	}
+	if len(posPossibleMap) == 1 {
+		return
+	}
+
 	for posPossible := range posPossibleMap {
 		b := true
 		for _, notPos := range notSolvePos {
-			if _, ok := notSolvePosPossibleMap[notPos][posPossible]; ok {
-				b = false
+			notSolvePosPossible, ok := notSolvePosPossibleMap[notPos]
+			if ok {
+				if _, ok := notSolvePosPossible[posPossible]; ok {
+					b = false
+				}
+			} else {
+				return
 			}
+
 		}
 
 		if b {
 			notSolvePosPossibleMap[pos] = map[byte]struct{}{
-				posPossible: struct{}{},
+				posPossible: {},
 			}
 			return
 		}
@@ -199,7 +228,15 @@ func excludeByNotPossible(pos position, notSolvePos []position,
 }
 
 func deletePositionArray(arr []position, i int) []position {
-	return append(arr[:i], arr[i+1:]...)
+	rev := make([]position, 0, len(arr))
+
+	for k := 0; k < len(arr); k ++ {
+		if k != i {
+			rev = append(rev, arr[k])
+		}
+	}
+
+	return rev
 }
 
 // PrintBoard ...
@@ -210,5 +247,15 @@ func PrintBoard(board [][]byte) {
 		}
 		fmt.Println()
 
+	}
+}
+
+func PrintPossibleMap(possibleMap map[position]map[byte]struct{}) {
+	for pos := range possibleMap {
+		fmt.Printf("\tPosition: [%v]\n\t\t", pos)
+		for key := range possibleMap[pos] {
+			fmt.Printf("%s, ", string(key))
+		}
+		fmt.Println()
 	}
 }
