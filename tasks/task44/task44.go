@@ -1,37 +1,76 @@
 package task44
 
-import "strings"
+import (
+	"strings"
+)
 
 func isMatch(s string, p string) bool {
 	p = pretreatment(p)
-	patterns := splitPattern(p)
-
-	return subIsMatch(s, patterns)
-}
-
-func subIsMatch(s string, patterns []string) bool {
-	if len(patterns) == 0 {
-		return len(s) == 0
+	if p == "*" {
+		return true
+	}
+	if len(p) == 0 {
+		return s == ""
 	}
 
-	if patterns[0] != "*" {
-		if len(s) < len(patterns[0]) || !equalPattern(s[:len(patterns[0])], patterns[0]) {
-			return false
+	patterns, startWithWildCard, endWithWildCard := extractPattern(p)
+	if endWithWildCard { // end with *
+		startPos := 0
+		for i := 0; i < len(patterns); i++ {
+			pos := stringsPatternIndex(s[startPos:], patterns[i])
+			if pos == -1 {
+				return false
+			}
+			if !startWithWildCard && startPos == 0 && pos != 0 {
+				return false
+			}
+
+			startPos += pos + len(patterns[i])
 		}
-		return subIsMatch(s[len(patterns[0]):], patterns[1:])
-	}
-
-	if len(patterns) == 1 {
 		return true
 	}
 
-	for i := 0; i < len(s); i++ {
-		if subIsMatch(s[i:], patterns[1:]) {
-			return true
+	if startWithWildCard { // start with *
+		endPos := len(s)
+		for i := len(patterns) - 1; i >= 0; i-- {
+			pos := stringsPatternLastIndex(s[:endPos], patterns[i])
+			if pos == -1 {
+				return false
+			}
+			if !endWithWildCard && endPos == len(s) && pos != len(s) {
+				return false
+			}
+
+			endPos = pos - len(patterns[i])
 		}
+		return true
 	}
 
-	return false
+	// not start with * and not end with *
+	if len(patterns) == 1 {
+		return equalPattern(s, patterns[0])
+	}
+
+	first := stringsPatternIndex(s, patterns[0])
+	if first != 0 {
+		return false
+	}
+	first += len(patterns[0])
+	for i := 1; i < len(patterns)-1; i++ {
+		pos := stringsPatternIndex(s[first:], patterns[i])
+		if pos == -1 {
+			return false
+		}
+
+		first += pos + len(patterns[i])
+	}
+
+	last := stringsPatternLastIndex(s[first:], patterns[len(patterns)-1])
+	if last != len(s[first:]) {
+		return false
+	}
+
+	return true
 }
 
 func pretreatment(p string) string {
@@ -52,8 +91,14 @@ func pretreatment(p string) string {
 	return str.String()
 }
 
-func splitPattern(p string) []string {
+func extractPattern(p string) ([]string, bool, bool) {
 	patterns := make([]string, 0, 10)
+
+	startWithWildCard, endWithWildCard := false, false
+	if len(p) != 0 {
+		startWithWildCard = p[0] == '*'
+		endWithWildCard = p[len(p)-1] == '*'
+	}
 	var str strings.Builder
 	for _, c := range p {
 		if c != '*' {
@@ -62,9 +107,7 @@ func splitPattern(p string) []string {
 		}
 
 		if str.Len() != 0 {
-			patterns = append(patterns, str.String(), string(c))
-		} else {
-			patterns = append(patterns, string(c))
+			patterns = append(patterns, str.String())
 		}
 
 		str.Reset()
@@ -74,7 +117,7 @@ func splitPattern(p string) []string {
 		patterns = append(patterns, str.String())
 	}
 
-	return patterns
+	return patterns, startWithWildCard, endWithWildCard
 }
 
 func equalPattern(s string, p string) bool {
@@ -92,4 +135,22 @@ func equalPattern(s string, p string) bool {
 	}
 
 	return true
+}
+
+func stringsPatternIndex(s string, p string) int {
+	for i := 0; i <= len(s)-len(p); i++ {
+		if equalPattern(s[i:i+len(p)], p) {
+			return i
+		}
+	}
+	return -1
+}
+
+func stringsPatternLastIndex(s string, p string) int {
+	for i := len(s); i >= len(p); i-- {
+		if equalPattern(s[i-len(p):i], p) {
+			return i
+		}
+	}
+	return -1
 }
