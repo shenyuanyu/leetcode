@@ -1,56 +1,33 @@
 package task47
 
-import (
-	"strconv"
-	"strings"
-)
-
 func permuteUnique(nums []int) [][]int {
-	resultMap := make(map[string][]int)
+	var result [][]int
 
-	recursion(nums, 0, resultMap)
-
-	result := make([][]int, 0, len(resultMap))
-	for _, val := range resultMap {
-		result = append(result, val)
-	}
+	recursion(nums, 0, &result)
 
 	return result
 }
 
-func recursion(nums []int, start int, resultMap map[string][]int) {
+func recursion(nums []int, start int, result *[][]int) {
 	if start == len(nums)-1 {
-		key := intSliceToString(nums)
-		if _, ok := resultMap[key]; ok {
-			return
-		}
-
 		tmp := make([]int, len(nums))
 		copy(tmp, nums)
-		resultMap[key] = tmp
+		*result = append(*result, tmp)
 		return
 	}
 
+	used := make(map[int]bool)
 	for i := start; i < len(nums); i++ {
-		if i > start && nums[i] == nums[start] {
-			continue
-		}
+		if !used[nums[i]] {
+			used[nums[i]] = true
 
-		swap(nums, i, start)
-		recursion(nums, start+1, resultMap)
-		swap(nums, start, i)
+			swap(nums, i, start)
+			recursion(nums, start+1, result)
+			swap(nums, start, i)
+		}
 	}
 }
 
 func swap(nums []int, i int, j int) {
 	nums[i], nums[j] = nums[j], nums[i]
-}
-
-func intSliceToString(nums []int) string {
-	var sb strings.Builder
-	for _, num := range nums {
-		sb.WriteString(strconv.Itoa(num))
-	}
-
-	return sb.String()
 }
