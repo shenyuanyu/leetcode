@@ -1,4 +1,4 @@
-package tasks
+package task39
 
 // combinationSum 计算目标值
 func combinationSum(candidates []int, target int) [][]int {

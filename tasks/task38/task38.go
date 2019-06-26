@@ -1,4 +1,4 @@
-package tasks
+package task38
 
 // 计数并说出
 func countAndSay(n int) string {

@@ -1,4 +1,4 @@
-package tasks
+package task41
 
 func firstMissingPositive(nums []int) int {
 	miss := 1

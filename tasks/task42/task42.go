@@ -1,4 +1,4 @@
-package tasks
+package task42
 
 func trap(height []int) int {
 	if len(height) < 3 {

@@ -1,4 +1,4 @@
-package tasks
+package task42
 
 import (
 	"testing"

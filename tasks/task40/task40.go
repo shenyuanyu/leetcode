@@ -1,4 +1,4 @@
-package tasks
+package task40
 
 import (
 	"sort"

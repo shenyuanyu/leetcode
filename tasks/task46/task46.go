@@ -1,4 +1,4 @@
-package tasks
+package task46
 
 func permute(nums []int) [][]int {
 	if len(nums) == 0 {

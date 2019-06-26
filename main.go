@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/rookiefiend/leetcode/tasks"
+	"github.com/rookiefiend/leetcode/tasks/task37"
 )
 
 func main() {
@@ -34,8 +33,8 @@ func main() {
 
 	for key, board := range boardMap {
 		fmt.Println(key + ":")
-		tasks.SolveSudoku(board)
-		tasks.PrintBoard(board)
+		task37.SolveSudoku(board)
+		task37.PrintBoard(board)
 
 		fmt.Println("---------------------------------------------------------------------------")
 	}

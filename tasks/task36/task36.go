@@ -1,4 +1,4 @@
-package tasks
+package task36
 
 // 验证数独是否合法
 func IsValidSudoku(board [][]byte) bool {

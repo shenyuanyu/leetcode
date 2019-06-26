@@ -1,4 +1,4 @@
-package tasks
+package task46
 
 import (
 	"reflect"

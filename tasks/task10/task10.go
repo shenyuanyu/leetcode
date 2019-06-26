@@ -1,4 +1,4 @@
-package tasks
+package task10
 
 func isMatch(s string, p string) bool {
 	ps := splitPattern([]byte(p))
