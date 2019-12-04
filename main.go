@@ -16,7 +16,7 @@ func main() {
 	}
 
 	s := ""
-	if len(flag.Args()) > 1 {
+	if len(flag.Args()) > 0 {
 		s = flag.Arg(0)
 	}
 
